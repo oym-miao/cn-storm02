@@ -1,0 +1,47 @@
+import org.apache.storm.task.OutputCollector;
+import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.IRichBolt;
+import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.tuple.Tuple;
+import org.apache.storm.tuple.Values;
+import util.NetUtil;
+
+import java.util.Map;
+
+/***
+ * 对单词进行分类
+ */
+public class SplitBolt implements IRichBolt {
+
+    private TopologyContext context ;
+    private OutputCollector collector ;
+
+    public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+        NetUtil.sendToClient(this, "prepare()",8888);
+        this.context = context ;
+        this.collector = collector ;
+    }
+
+    public void execute(Tuple tuple) {
+        NetUtil.sendToClient(this, "execute()",8888);
+        String line = tuple.getString(0);
+        String[] arr = line.split(" ");
+        for(String s : arr){
+            collector.emit(new Values(s,1));
+        }
+    }
+
+    public void cleanup() {
+
+    }
+
+    public void declareOutputFields(OutputFieldsDeclarer declarer) {
+        declarer.declare(new Fields("word","count"));
+
+    }
+
+    public Map<String, Object> getComponentConfiguration() {
+        return null;
+    }
+}
