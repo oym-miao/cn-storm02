@@ -46,7 +46,7 @@ public class WordCountTrident {
         // 构造DAG  Stream   指定数据采集器
         Stream stream = topology.newStream(SPOUT_ID,testSpout).parallelismHint(1);
         // 指定Tuple中哪个keyvalue对进行 过滤操作
-        //stream.shuffle()
+        //stream.shuffle()  //它的单词会进行不同的分区
         //stream.global()
         //stream.batchGlobal()
         //stream.broadcast()
@@ -56,33 +56,33 @@ public class WordCountTrident {
 
 
 
-        stream.each(new Fields("str"), new HasKeywordFilter()) //对数据的过滤处理
-        //.each(new Fields("str"),new PrintTestFilter()) //过滤完后进行打印
+         stream.each(new Fields("str"), new HasKeywordFilter()) //对数据的过滤处理
+     //  .each(new Fields("str"),new PrintTestFilter()) //过滤完后进行打印
 
 
         //.each(new Fields("str"), new PrintTestFilter())
 
         // 对tuple中key名称为str的keyvalue对的value值进行splitfunction操作，
         //产生新的keyvalue对key名称为word
-        .each(new Fields("str"), new SplitFunction(),new Fields("word"))
-                .each(new Fields("str","keyword","word"),new PrintTestFilter()) //注意这里的tuple追加模式和丢弃模式，如果没有产生新的tuple，则原先的tuple也会丢弃
+         .each(new Fields("str"), new SplitFunction(),new Fields("word"))
+               .each(new Fields("str","keyword","word"),new PrintTestFilter()) //注意这里的tuple追加模式和丢弃模式，如果没有产生新的tuple，则原先的tuple也会丢弃
         // 设置2个executor来执行splitfunction操作
-        .parallelismHint(2)
+       .parallelismHint(2)
         // tuple---> {"str":"xxxxxxxxx","describe":"xxx","word":"flume"}
         //.each(new Fields("str","describe","word"), new PrintTestFilter())
 
-        // 指定Tuple中只保留 key名称为word的keyvalue对
-        .project(new Fields("word"))
-//                .each(new Fields("word"),new PrintTestFilter())
-        .partitionBy(new Fields("word")) //hash分区
-        .groupBy(new Fields("word")).toStream()
+        // 指定Tuple中只保留 key名称为word的keyvalue对,那么后面就无法再获取别的字段的数据流了，否则会报错，所以project要慎用,它会将流进程截断
+    //   .project(new Fields("word"))
+    //             .each(new Fields("word"),new PrintTestFilter())
+      //  .partitionBy(new Fields("word")) //hash分区
+   //     .groupBy(new Fields("word")).toStream()
 //        .persistentAggregate(new MemoryMapState.Factory(),
 //                new Count(), new Fields("count")).newValuesStream()
         //.each(new Fields("word"), new  PrintTestFilter())
         //.parallelismHint(4)
-        .each(new Fields("word"), new CountFunction(),new Fields("count"))
-        .parallelismHint(3)
-        .each(new Fields("word","count"), new PrintTestFilter())
+//        .each(new Fields("word"), new CountFunction(),new Fields("count"))
+//        .parallelismHint(3)
+//        .each(new Fields("word","count"), new PrintTestFilter())
         ;
 
         Config config = new Config();

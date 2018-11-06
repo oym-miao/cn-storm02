@@ -18,8 +18,10 @@ public class WindowTopology {
         TopologyBuilder topologyBuilder = new TopologyBuilder();
         topologyBuilder.setSpout("spout",new WindowSpout(),1);
 //      topologyBuilder.setBolt("filebolt",new FileBolt(),1).setNumTasks(4).shuffleGrouping("spout");
-//        topologyBuilder.setBolt("windowBolt",new MyTumplingWindow().withTumblingWindow(BaseWindowedBolt.Count.of(5))).shuffleGrouping("spout");
-        topologyBuilder.setBolt("windowBolt",new MySlidingWindow().withWindow(BaseWindowedBolt.Count.of(2),BaseWindowedBolt.Count.of(2))).shuffleGrouping("spout");
+
+          //记住实时统计的过程中 千万不能用并发，这里如果加了并发，就会导致数据紊乱，阶段数据的处理，一定是单线程去操作，否则会导致过多的计算
+ //       topologyBuilder.setBolt("windowBolt",new MyTumplingWindow().withTumblingWindow(BaseWindowedBolt.Count.of(5))).shuffleGrouping("spout");
+        topologyBuilder.setBolt("windowBolt",new MySlidingWindow().withWindow(BaseWindowedBolt.Count.of(5),BaseWindowedBolt.Count.of(3))).shuffleGrouping("spout");
 //        topologyBuilder.setBolt("printbolt",new PrintBolt(),1).shuffleGrouping("filebolt");
 //        topologyBuilder.setBolt("printbolt",new PrintBolt(),1).shuffleGrouping("filebolt");
 //        topologyBuilder.setBolt("printbolt",new PrintBolt(),1).shuffleGrouping("filebolt");
